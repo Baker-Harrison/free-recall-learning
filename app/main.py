@@ -10,7 +10,8 @@ from sqlalchemy.orm import Session
 
 from .db import SessionLocal, init_db
 from . import models, scheduler, utils
-from .llm import MockLLM
+from .llm import build_llm
+from .config import settings
 
 init_db()
 
@@ -46,7 +47,7 @@ class LLMResponse(BaseModel):
     flashcards: list[FlashcardItem]
 
 
-llm = MockLLM()
+llm = build_llm(settings)
 
 
 @app.get("/health")
