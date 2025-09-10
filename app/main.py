@@ -4,6 +4,7 @@ from datetime import datetime, timedelta
 import json
 
 from fastapi import Depends, FastAPI, HTTPException
+from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, ValidationError
 from collections.abc import Iterator
 from sqlalchemy.orm import Session
@@ -16,6 +17,14 @@ from .config import settings
 init_db()
 
 app = FastAPI(title="Free Recall Study App")
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 
 def get_db() -> Iterator[Session]:
@@ -45,6 +54,13 @@ class LLMResponse(BaseModel):
     score: int
     feedback: str
     flashcards: list[FlashcardItem]
+
+
+class HistoryItem(BaseModel):
+    recall_text: str
+    feedback: str
+    score: int
+    created_at: str
 
 
 llm = build_llm(settings)
@@ -143,3 +159,29 @@ async def recall(req: RecallRequest, db: Session = Depends(get_db)) -> dict[str,
         "cards_added": cards_added,
         "next_review": schedule.next_review,
     }
+
+
+@app.get("/history/{topic}")
+async def history(topic: str, db: Session = Depends(get_db)) -> list[HistoryItem]:
+    rows = (
+        db.query(models.RecallHistory)
+        .filter_by(topic=topic)
+        .order_by(models.RecallHistory.created_at.desc())
+        .all()
+    )
+    result: list[HistoryItem] = []
+    for r in rows:
+        feedback = ""
+        try:
+            feedback = json.loads(r.feedback_json).get("feedback", "")
+        except json.JSONDecodeError:  # pragma: no cover - stored JSON should be valid
+            pass
+        result.append(
+            HistoryItem(
+                recall_text=r.recall_text,
+                feedback=feedback,
+                score=r.score,
+                created_at=r.created_at,
+            )
+        )
+    return result

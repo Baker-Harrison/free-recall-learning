@@ -373,6 +373,18 @@ README.md
 * `.env.example` filled with placeholders.
 * Postman/REST Client examples or OpenAPI served at `/docs`.
 
+### Frontend Development
+
+A React client lives in `frontend/` and provides pages for uploading material, running recall sessions, viewing due topics, and browsing history. To start the development server:
+
+```bash
+cd frontend
+npm install
+npm run dev
+```
+
+The Vite dev server proxies API requests to the FastAPI backend at `localhost:8000`.
+
 ---
 
 ## Optional Enhancements (If Time Allows)
