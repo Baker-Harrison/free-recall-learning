@@ -21,7 +21,7 @@ You are an expert full‑stack engineer tasked with producing a production‑rea
 * **Language**: Python 3.11+.
 * **Framework**: Prefer **FastAPI** for built‑in OpenAPI and pydantic. If you use Flask, replicate equivalent validation with `pydantic`/`marshmallow`. FastAPI is recommended.
 * **DB**: SQLite (`study_app.db`) using `sqlite3` or `sqlalchemy` (recommended) with WAL mode enabled. Include indices and constraints.
-* **LLM Provider**: Pluggable interface supporting OpenAI and Gemini. Use official client libraries. Hide keys in environment variables. Provide a no‑network `MockLLM` for tests.
+* **LLM Provider**: Gemini with a pluggable interface (plus a no‑network `MockLLM` for tests). Use the official client library and hide keys in environment variables.
 * **Anki**: AnkiConnect at `http://localhost:8765`. Create deck if missing. Prevent duplicates.
 * **Time**: Store UTC timestamps as ISO 8601. Convert to local time only in UI.
 * **Security**: Input validation, request size limits, CORS config, API key loading from env, simple auth hook (optional token) that can be toggled via env.
@@ -32,10 +32,9 @@ You are an expert full‑stack engineer tasked with producing a production‑rea
 
 Provide `.env.example` and config loader.
 
-* `LLM_PROVIDER=openai|gemini|mock`
-* `OPENAI_API_KEY=...` (if provider=openai)
-* `GEMINI_API_KEY=...` (if provider=gemini)
-* `MODEL_NAME=gpt-4o-mini` (or provider‑appropriate default)
+* `LLM_PROVIDER=gemini|mock`
+* `GEMINI_API_KEY=...`
+* `MODEL_NAME=gemini-1.5-flash`
 * `ANKI_CONNECT_URL=http://localhost:8765`
 * `ANKI_DECK_NAME=Pharmacy_Recall_AI`
 * `APP_AUTH_TOKEN=` (optional; if set, require `Authorization: Bearer <token>`)
@@ -286,7 +285,6 @@ app/
   llm/
     __init__.py
     provider.py        # interface + factory
-    openai_provider.py
     gemini_provider.py
     mock_provider.py
   anki.py              # AnkiConnect client + dedupe
